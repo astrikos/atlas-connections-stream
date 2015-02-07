@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+    <title>WebSockets Leaflet</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="http://atlas-stream.ripe.net/stream/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment.min.js"></script>
+    <script src="probesLocation.js"></script>
+
+</head>
+
+<form class="form-inline">
+    <div class="form-group">
+        <label for="prbID">Probe ID</label>
+        <input type="text" class="form-control" id="prbID" placeholder="3">
+    </div>
+    <button type="submit" class="btn btn-info">Filter</button>
+    <button id="pause" onClick="javascript:pauseStream();" type="button" class="btn btn-success">Pause</button>
+</form>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div id="map" style="width: 600px; height: 600px"></div>
+    </div>
+    <div class="col-lg-6">
+        <table class="table table-hover" id="connections-table"></table>
+    </div>
+</div>
+
+<script>
+
+    var map = L.map('map').setView([51.505, -0.09], 5);
+    var popup = L.popup();
+
+    // add an OpenStreetMap tile layer
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var paused = false;
+
+    var greenIcon = L.icon({
+        iconUrl: 'https://api.tiles.mapbox.com/v3/marker/pin-s-marker+00FF00.png'
+    });
+
+    var redIcon = L.icon({
+        iconUrl: 'https://api.tiles.mapbox.com/v3/marker/pin-s-marker+FF0000.png'
+    });
+
+    function pauseStream() {
+        paused = !paused;
+        document.getElementById("pause").innerHTML = paused ? "Start" : "Pause";
+        document.getElementById("pause").active = paused
+    }
+
+    function onMessage(message) {
+        message = JSON.parse(message)
+        console.log(message)
+        if (!paused) {
+            updateTable(message);
+            if (probesLocation.hasOwnProperty(message.prb_id)) {
+                displayNewPosition(probesLocation[message.prb_id][0], probesLocation[message.prb_id][1], "Probe ID: " + message.prb_id, message.event)
+            }
+
+        }
+    }
+
+    function displayNewPosition(lat, lng, body, event) {
+        if (typeof marker != 'undefined') {
+            map.removeLayer(marker);  // delete previous marker
+        }
+        var icon = event == "C" ? greenIcon : redIcon;
+        marker = L.marker([lat, lng], {icon: icon}).addTo(map).bindPopup(body).openPopup();  // add new marker
+        map.setView([lat, lng], 3);
+    }
+
+    function updateTable(message) {
+        var connections = document.getElementById("connections-table");
+        var rowCount = connections.rows.length;
+        if (rowCount >= 30) {
+            connections.deleteRow(rowCount - 1);
+        }
+        var row = connections.insertRow(0);
+        if (message.event == "C") {
+            row.setAttribute("class", "success");
+        }
+        else {
+            row.setAttribute("class", "danger");
+        }
+
+        var cell0 = row.insertCell(0);
+        cell0.setAttribute("width", "15%");
+        cell0.innerHTML = '<a href="https://atlas.ripe.net/probes/' + message.prb_id + '/" target="_blank">' + message.prb_id + '</a>';
+
+        var cell1 = row.insertCell(1);
+        cell1.setAttribute("width", "50%");
+        var day = moment.unix(message.timestamp)
+
+        var statusChangedAt = day.format('MMMM Do, h:mm:ss a');
+        status = message.event == "C" ? "Connected to " : "Disconnected from ";
+
+        cell1.innerHTML = status + message.controller_name + " at " + statusChangedAt;
+
+    }
+
+    var StreamManager = function () {
+
+        var socket;
+
+        this.disconnect = function () {
+            this.socket.disconnect()
+        }
+
+        this.setup = function (config, forceNew, callback) {
+            var server = "http://atlas-stream.ripe.net";
+            var that = this;
+            var io_config = {path: "/stream/socket.io"};
+            //Force new connection
+            if (forceNew) {
+                io_config.forceNew = true;
+            }
+            //Connect
+            this.socket = io(server, io_config);
+            //Send config
+            this.socket.on('connect', function () {
+                that.socket.emit("config", config);
+            });
+            //Logging
+            var log = ["Sent config for ", config.stream_type]
+            if (config.prb) {
+                log.push(" and prb: ");
+                log.push(config.prb)
+            }
+            console.log(log.join(""));
+
+            //Setup callback on messages
+            this.socket.on('msm', callback);
+        }
+
+    };
+
+    var streamManager = new StreamManager();
+    streamManager.setup({ stream_type: "connection" }, false, onMessage);
+    $('form').submit(function () {
+        streamManager.disconnect();
+        var prbID = $("#prbID").val()
+        streamManager.setup({ stream_type: "connection", prb: prbID }, true, onMessage);
+        return false;
+    });
+    
+</script>
