@@ -7,8 +7,7 @@ var StreamManager = function () {
     }
 
     this.setup = function (config, forceNew, callback) {
-        //var server = "http://atlas-stream.ripe.net";
-        var server = "http://stream-dev.atlas.ripe.net";
+        var server = "http://atlas-stream.ripe.net";
         var that = this;
         var io_config = {path: "/stream/socket.io"};
         //Force new connection
