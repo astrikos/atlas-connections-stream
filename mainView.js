@@ -1,4 +1,4 @@
-var PageView = function () {
+var PageView = function (streamManager) {
 
     var paused = false;
 
@@ -12,14 +12,16 @@ var PageView = function () {
 
     var map;
 
+    var that = this;
+
     function createMap() {
-        this.map = L.map('map').setView([51.505, -0.09], 5);
+        map = L.map('map').setView([51.505, -0.09], 5);
         var popup = L.popup();
 
         // add an OpenStreetMap tile layer
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(this.map);
+        }).addTo(map);
     }
 
     function pauseStream() {
@@ -41,11 +43,11 @@ var PageView = function () {
 
     function displayNewPosition(lat, lng, body, event) {
         if (typeof marker != 'undefined') {
-            this.map.removeLayer(marker);  // delete previous marker
+            map.removeLayer(marker);  // delete previous marker
         }
         var icon = event == "C" ? greenIcon : redIcon;
-        marker = L.marker([lat, lng], {icon: icon}).addTo(this.map).bindPopup(body).openPopup();  // add new marker
-        this.map.setView([lat, lng], 3);
+        marker = L.marker([lat, lng], {icon: icon}).addTo(map).bindPopup(body).openPopup();  // add new marker
+        map.setView([lat, lng], 3);
     }
 
     function updateTable(message) {
@@ -71,7 +73,7 @@ var PageView = function () {
         var day = moment.unix(message.timestamp)
 
         var statusChangedAt = day.format('MMMM Do, h:mm:ss a');
-        status = message.event == "C" ? "Connected to " : "Disconnected from ";
+        var status = message.event == "C" ? "Connected to " : "Disconnected from ";
 
         cell1.innerHTML = status + message.controller_name + " at " + statusChangedAt;
     }
@@ -83,8 +85,12 @@ var PageView = function () {
 
         $('form').submit(function () {
             streamManager.disconnect();
+            var config = { stream_type: "connection" };
             var prbID = $("#prbID").val()
-            streamManager.setup({ stream_type: "connection", prb: prbID }, true, this.onMessage);
+            if (prbID) {
+                config.prb = prbID;
+            }
+            streamManager.setup(config, true, that.onMessage);
             return false;
         });
     }
