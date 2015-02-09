@@ -12,6 +12,8 @@ var PageView = function (streamManager) {
 
     var map;
 
+	var markers = [];
+
     var that = this;
 
     function createMap() {
@@ -44,6 +46,13 @@ var PageView = function (streamManager) {
     function displayNewPosition(lat, lng, body, event) {
         var icon = event == "C" ? greenIcon : redIcon;
         marker = L.marker([lat, lng], {icon: icon}).addTo(map).bindPopup(body).openPopup();  // add new marker
+		markers.push(marker)
+    }
+
+	function clearMap() {
+		while (marker = markers.pop()) {
+			map.removeLayer(marker);
+		}
     }
 
     function updateTable(message) {
@@ -78,6 +87,7 @@ var PageView = function (streamManager) {
         createMap()
 
         $('#pause').click(pauseStream)
+        $('#clear-map').click(clearMap)
 
         $('form').submit(function () {
             streamManager.disconnect();
