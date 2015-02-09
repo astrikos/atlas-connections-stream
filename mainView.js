@@ -15,7 +15,7 @@ var PageView = function (streamManager) {
     var that = this;
 
     function createMap() {
-        map = L.map('map').setView([51.505, -0.09], 5);
+        map = L.map('map').setView([0, 0], 2);
         var popup = L.popup();
 
         // add an OpenStreetMap tile layer
@@ -42,12 +42,8 @@ var PageView = function (streamManager) {
     }
 
     function displayNewPosition(lat, lng, body, event) {
-        if (typeof marker != 'undefined') {
-            map.removeLayer(marker);  // delete previous marker
-        }
         var icon = event == "C" ? greenIcon : redIcon;
         marker = L.marker([lat, lng], {icon: icon}).addTo(map).bindPopup(body).openPopup();  // add new marker
-        map.setView([lat, lng], 3);
     }
 
     function updateTable(message) {

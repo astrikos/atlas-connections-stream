@@ -25,17 +25,17 @@
 </form>
 
 <div class="row">
-    <div class="col-lg-6">
-        <div id="map" style="width: 600px; height: 600px"></div>
+    <div class="col-lg-12">
+        <div id="map" style="width: 1400px; height: 700px"></div>
     </div>
-    <div class="col-lg-6">
+</div>
+<div class="row">
+    <div class="col-lg-8">
         <table class="table table-hover" id="connections-table"></table>
     </div>
 </div>
 
 <script>
-
-
     var streamManager = new StreamManager();
     var view = new PageView(streamManager);
     view.init();
