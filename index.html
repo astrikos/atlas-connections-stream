@@ -35,9 +35,10 @@
 
 <script>
 
-    var view = new PageView();
-    view.init();
+
     var streamManager = new StreamManager();
+    var view = new PageView(streamManager);
+    view.init();
     streamManager.setup({ stream_type: "connection" }, false, view.onMessage);
 
 </script>
