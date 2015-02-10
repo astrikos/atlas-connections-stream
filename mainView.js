@@ -29,29 +29,31 @@ var PageView = function (streamManager) {
     function pauseStream() {
         paused = !paused;
         document.getElementById("pause").innerHTML = paused ? "Start" : "Pause";
-        document.getElementById("pause").active = paused
+        document.getElementById("pause").active = paused;
     }
 
     this.onMessage = function (message) {
-        message = JSON.parse(message)
+        message = JSON.parse(message);
         if (!paused) {
             updateTable(message);
             if (probesLocation.hasOwnProperty(message.prb_id)) {
-                displayNewPosition(probesLocation[message.prb_id][0], probesLocation[message.prb_id][1], "Probe ID: " + message.prb_id, message.event)
+                displayNewPosition(probesLocation[message.prb_id][0], probesLocation[message.prb_id][1], "Probe ID: " + message.prb_id, message.event);
             }
 
         }
-    }
+    };
 
     function displayNewPosition(lat, lng, body, event) {
         var icon = event == "C" ? greenIcon : redIcon;
         marker = L.marker([lat, lng], {icon: icon}).addTo(map).bindPopup(body).openPopup();  // add new marker
-		markers.push(marker)
+		markers.push(marker);
     }
 
 	function clearMap() {
-		while (marker = markers.pop()) {
+		var marker = markers.pop();
+		while (marker) {
 			map.removeLayer(marker);
+			marker = markers.pop();
 		}
     }
 
@@ -75,7 +77,7 @@ var PageView = function (streamManager) {
 
         var cell1 = row.insertCell(1);
         cell1.setAttribute("width", "50%");
-        var day = moment.unix(message.timestamp)
+        var day = moment.unix(message.timestamp);
 
         var statusChangedAt = day.format('MMMM Do, h:mm:ss a');
         var status = message.event == "C" ? "Connected to " : "Disconnected from ";
@@ -84,20 +86,20 @@ var PageView = function (streamManager) {
     }
 
     this.init = function () {
-        createMap()
+        createMap();
 
-        $('#pause').click(pauseStream)
-        $('#clear-map').click(clearMap)
+        $('#pause').click(pauseStream);
+        $('#clear-map').click(clearMap);
 
         $('form').submit(function () {
             streamManager.disconnect();
             var config = { stream_type: "connection" };
-            var prbID = $("#prbID").val()
+            var prbID = $("#prbID").val();
             if (prbID) {
                 config.prb = prbID;
             }
             streamManager.setup(config, true, that.onMessage);
             return false;
         });
-    }
-}
+    };
+};
