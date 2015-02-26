@@ -33,7 +33,6 @@ var PageView = function (streamManager) {
     }
 
     this.onMessage = function (message) {
-        message = JSON.parse(message);
         if (!paused) {
             updateTable(message);
             if (probesLocation.hasOwnProperty(message.prb_id)) {
@@ -93,7 +92,7 @@ var PageView = function (streamManager) {
 
         $('form').submit(function () {
             streamManager.disconnect();
-            var config = { stream_type: "connection" };
+            var config = { stream_type: "probestatus" };
             var prbID = $("#prbID").val();
             if (prbID) {
                 config.prb = prbID;

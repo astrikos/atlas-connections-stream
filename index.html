@@ -60,6 +60,6 @@
     var streamManager = new StreamManager();
     var view = new PageView(streamManager);
     view.init();
-    streamManager.setup({ stream_type: "connection" }, false, view.onMessage);
+    streamManager.setup({ stream_type: "probestatus" }, false, view.onMessage);
 
 </script>

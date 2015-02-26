@@ -18,7 +18,7 @@ var StreamManager = function () {
         this.socket = io(server, io_config);
         //Send config
         this.socket.on('connect', function () {
-            that.socket.emit("config", config);
+            that.socket.emit("atlas_subscribe", config);
         });
         //Logging
         var log = ["Sent config for ", config.stream_type]
@@ -29,6 +29,6 @@ var StreamManager = function () {
         console.log(log.join(""));
 
         //Setup callback on messages
-        this.socket.on('msm', callback);
+        this.socket.on('atlas_probestatus', callback);
     }
 };
