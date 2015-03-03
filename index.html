@@ -18,7 +18,7 @@
 <div class="container-fluid">
 <div class="row">
     
-    <div class="col-lg-4">
+    <div class="col-lg-2">
         <ul class="nav navbar-right nav-tabs " role="tablist">
             <li role="presentation" class="active"><a href="#map-tab" role="tab" data-toggle="tab">Map</a></li>
             <li role="presentation"><a href="#table-tab" role="tab" data-toggle="tab">Table</a></li>
@@ -29,6 +29,10 @@
             <div class="form-group">
                 <label for="prbID">Probe ID</label>
                 <input type="text" class="form-control" id="prbID" placeholder="Single Probe ID">
+
+                <label for="asn">AS</label>
+                <input type="text" class="form-control" id="asn" placeholder="AS number">
+
             </div>
             <button type="submit" class="btn btn-info">Filter</button>
             <button id="pause" type="button" class="btn btn-success">Pause</button>
@@ -60,6 +64,6 @@
     var streamManager = new StreamManager();
     var view = new PageView(streamManager);
     view.init();
-    streamManager.setup({ stream_type: "probestatus" }, false, view.onMessage);
+    streamManager.setup({ stream_type: "probestatus"}, false, view.onMessage);
 
 </script>
