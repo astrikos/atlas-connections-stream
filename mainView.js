@@ -33,7 +33,7 @@ var PageView = function (streamManager) {
     }
 
     this.onMessage = function (message) {
-        console.log(message);
+
         if (!paused) {
             updateTable(message);
             if (probesLocation.hasOwnProperty(message.prb_id)) {
