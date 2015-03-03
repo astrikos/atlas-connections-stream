@@ -33,6 +33,7 @@ var PageView = function (streamManager) {
     }
 
     this.onMessage = function (message) {
+
         if (!paused) {
             updateTable(message);
             if (probesLocation.hasOwnProperty(message.prb_id)) {
@@ -91,12 +92,18 @@ var PageView = function (streamManager) {
         $('#clear-map').click(clearMap);
 
         $('form').submit(function () {
-            streamManager.disconnect();
+            clearMap();
             var config = { stream_type: "probestatus" };
             var prbID = $("#prbID").val();
+            var asn = $("#asn").val();
             if (prbID) {
                 config.prb = prbID;
             }
+
+            if (asn) {
+                config.equalsTo = {asn: asn};
+            }
+
             streamManager.setup(config, true, that.onMessage);
             return false;
         });
