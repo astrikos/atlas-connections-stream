@@ -6,18 +6,8 @@ var StreamManager = function () {
     };
 
     this.setup = function (config, forceNew, callback) {
-        if (false) {
-            var server = "http://atlas-stream.ripe.net";
-            var io_config = {path: "/stream/socket.io"};
-        } else {
-            var server = "http://localhost:8080";
-            var io_config = {path: "/socket.io"};
-        }
-
-        ////Force new connection
-        //if (forceNew) {
-        //    io_config.forceNew = true;
-        //}
+        var server = "http://atlas-stream.ripe.net";
+        var io_config = {path: "/stream/socket.io"};
 
         if (this.socket){
             that.socket.emit("atlas_unsubscribe", that.lastConfig);
