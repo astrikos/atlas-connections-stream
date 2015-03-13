@@ -33,7 +33,7 @@ var PageView = function (streamManager) {
     }
 
     this.onMessage = function (message) {
-
+        console.log(message);
         if (!paused) {
             updateTable(message);
             if (probesLocation.hasOwnProperty(message.prb_id)) {
@@ -44,7 +44,7 @@ var PageView = function (streamManager) {
     };
 
     function displayNewPosition(lat, lng, body, event) {
-        var icon = event == "C" ? greenIcon : redIcon;
+        var icon = event == "connect" ? greenIcon : redIcon;
         marker = L.marker([lat, lng], {icon: icon}).addTo(map).bindPopup(body).openPopup();  // add new marker
 		markers.push(marker);
     }
@@ -64,7 +64,7 @@ var PageView = function (streamManager) {
             connections.deleteRow(rowCount - 1);
         }
         var row = connections.insertRow(0);
-        if (message.event == "C") {
+        if (message.event == "connect") {
             row.setAttribute("class", "success");
         }
         else {
@@ -80,7 +80,7 @@ var PageView = function (streamManager) {
         var day = moment.unix(message.timestamp);
 
         var statusChangedAt = day.format('MMMM Do, h:mm:ss a');
-        var status = message.event == "C" ? "Connected to " : "Disconnected from ";
+        var status = message.event == "connect" ? "Connected to " : "Disconnected from ";
 
         cell1.innerHTML = status + message.controller_name + " at " + statusChangedAt;
     }
