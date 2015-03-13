@@ -2,17 +2,19 @@ var PageView = function (streamManager) {
 
     var paused = false;
 
-    var greenIcon = L.icon({
-        iconUrl: 'https://api.tiles.mapbox.com/v3/marker/pin-s-marker+00FF00.png'
-    });
-
-    var redIcon = L.icon({
-        iconUrl: 'https://api.tiles.mapbox.com/v3/marker/pin-s-marker+FF0000.png'
-    });
+    //var greenIcon = L.icon({
+    //    "iconAnchor": [15, 15],
+    //    iconUrl: 'https://api.tiles.mapbox.com/v3/marker/circle-s-marker+00FF00.png'
+    //});
+    //
+    //var redIcon = L.icon({
+    //    "iconAnchor": [8, 15],
+    //    iconUrl: 'https://api.tiles.mapbox.com/v3/marker/circle-s-marker+FF0000.png'
+    //});
 
     var map;
 
-	var markers = [];
+    var markers = [];
 
     var that = this;
 
@@ -33,7 +35,6 @@ var PageView = function (streamManager) {
     }
 
     this.onMessage = function (message) {
-        console.log(message);
         if (!paused) {
             updateTable(message);
             if (probesLocation.hasOwnProperty(message.prb_id)) {
@@ -44,17 +45,25 @@ var PageView = function (streamManager) {
     };
 
     function displayNewPosition(lat, lng, body, event) {
-        var icon = event == "connect" ? greenIcon : redIcon;
-        marker = L.marker([lat, lng], {icon: icon}).addTo(map).bindPopup(body).openPopup();  // add new marker
-		markers.push(marker);
+        //var icon = event == "connect" ? greenIcon : redIcon;
+        var marker;
+
+        marker = L.circleMarker([lat, lng], {
+            radius: 4,
+            opacity: 1,
+            fillOpacity: 1,
+            color: (event == "connect") ? "#2FB000" : "#CF0000"
+        });
+        marker = marker.addTo(map).bindPopup(body).openPopup();  // add new marker
+        markers.push(marker);
     }
 
-	function clearMap() {
-		var marker = markers.pop();
-		while (marker) {
-			map.removeLayer(marker);
-			marker = markers.pop();
-		}
+    function clearMap() {
+        var marker = markers.pop();
+        while (marker) {
+            map.removeLayer(marker);
+            marker = markers.pop();
+        }
     }
 
     function updateTable(message) {
