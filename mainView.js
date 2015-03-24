@@ -1,4 +1,4 @@
-var PageView = function (streamManager) {
+var PageView = function (streamManager, stats) {
 
     var paused = false;
 
@@ -12,15 +12,15 @@ var PageView = function (streamManager) {
     //    iconUrl: 'https://api.tiles.mapbox.com/v3/marker/circle-s-marker+FF0000.png'
     //});
 
-    var map;
+var map;
 
-    var markers = [];
+var markers = [];
 
-    var that = this;
+var that = this;
 
-    function createMap() {
-        map = L.map('map').setView([0, 0], 2);
-        var popup = L.popup();
+function createMap() {
+    map = L.map('map').setView([0, 0], 2);
+    var popup = L.popup();
 
         // add an OpenStreetMap tile layer
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -36,7 +36,8 @@ var PageView = function (streamManager) {
 
     this.onMessage = function (message) {
         if (!paused) {
-            updateTable(message);
+            updateLogsTable(message);
+            stats.updateStats(message);
             if (probesLocation.hasOwnProperty(message.prb_id)) {
                 displayNewPosition(probesLocation[message.prb_id][0], probesLocation[message.prb_id][1], "Probe ID: " + message.prb_id, message.event);
             }
@@ -66,55 +67,98 @@ var PageView = function (streamManager) {
         }
     }
 
-    function updateTable(message) {
-        var connections = document.getElementById("connections-table");
-        var rowCount = connections.rows.length;
-        if (rowCount >= 30) {
-            connections.deleteRow(rowCount - 1);
+    function updateStatsTable() {
+        // Reset table except headers
+        $("#stats-table tbody tr").remove();
+
+        var stats_table = document.getElementById("stats-table").getElementsByTagName('tbody')[0];
+
+        // Sort dict
+        var items = Object.keys(stats.asn_activity).map(function(key) {
+            return [key, stats.asn_activity[key]];
+        });
+        items.sort(function(first, second) {
+            return second[1][0] - first[1][0];
+        });
+
+        //Fill table with sorted data
+        for (var i = 0; (i < items.length && i<10); i++) {
+            var row = stats_table.insertRow(-1);
+            var cell0 = row.insertCell(0);
+            cell0.setAttribute("width", "15%");
+            cell0.innerHTML = items[i][0]
+            var cell1 = row.insertCell(1);
+            cell1.setAttribute("width", "15%");
+            cell1.innerHTML = items[i][1][0]
+            var cell2 = row.insertCell(2);
+            cell2.setAttribute("width", "15%");
+            cell2.innerHTML = items[i][1][1]
         }
-        var row = connections.insertRow(0);
-        if (message.event == "connect") {
-            row.setAttribute("class", "success");
-        }
-        else {
-            row.setAttribute("class", "danger");
-        }
+    };
 
-        var cell0 = row.insertCell(0);
-        cell0.setAttribute("width", "15%");
-        cell0.innerHTML = '<a href="https://atlas.ripe.net/probes/' + message.prb_id + '/" target="_blank">' + message.prb_id + '</a>';
-
-        var cell1 = row.insertCell(1);
-        cell1.setAttribute("width", "50%");
-        var day = moment.unix(message.timestamp);
-
-        var statusChangedAt = day.format('MMMM Do, h:mm:ss a');
-        var status = message.event == "connect" ? "Connected to " : "Disconnected from ";
-
-        cell1.innerHTML = status + message.controller_name + " at " + statusChangedAt;
+function updateLogsTable(message) {
+    var connections = document.getElementById("connections-table");
+    var rowCount = connections.rows.length;
+    if (rowCount >= 30) {
+        connections.deleteRow(rowCount - 1);
+    }
+    var row = connections.insertRow(1);
+    if (message.event == "connect") {
+        row.setAttribute("class", "success");
+    }
+    else {
+        row.setAttribute("class", "danger");
     }
 
-    this.init = function () {
-        createMap();
+    var cell0 = row.insertCell(0);
+    cell0.setAttribute("width", "15%");
+    cell0.innerHTML = '<a href="https://atlas.ripe.net/probes/' + message.prb_id + '/" target="_blank">' + message.prb_id + '</a>';
 
-        $('#pause').click(pauseStream);
-        $('#clear-map').click(clearMap);
+    var cell1 = row.insertCell(1);
+    cell1.setAttribute("width", "15%");
+    cell1.innerHTML = '<a href="https://stat.ripe.net/' + message.asn + '/" target="_blank">' + message.asn + '</a>';
 
-        $('form').submit(function () {
-            clearMap();
-            var config = { stream_type: "probestatus" };
-            var prbID = $("#prbID").val();
-            var asn = $("#asn").val();
-            if (prbID) {
-                config.prb = prbID;
-            }
+    var cell2 = row.insertCell(2);
+    cell2.setAttribute("width", "15%");
+    cell2.innerHTML = '<a href="https://stat.ripe.net/' + message.prefix + '/" target="_blank">' + message.prefix + '</a>';
 
-            if (asn) {
-                config.equalsTo = {asn: asn};
-            }
+    var cell3 = row.insertCell(3);
+    cell3.setAttribute("width", "15%");
+    cell3.innerHTML = message.controller;
 
-            streamManager.setup(config, true, that.onMessage);
-            return false;
-        });
-    };
+    var cell4 = row.insertCell(4);
+    cell4.setAttribute("width", "15%");
+    var connection_time = moment.unix(message.timestamp).format('MMMM Do, h:mm:ss a');
+    cell4.innerHTML = connection_time;
+
+    var cell5 = row.insertCell(5);
+    cell5.setAttribute("width", "15%");
+    var status = message.event == "connect" ? "Connect" : "Disconnect";
+    cell5.innerHTML = status;
+}
+
+this.init = function () {
+    createMap();
+    setInterval(updateStatsTable, 10000);
+
+    $('#pause').click(pauseStream);
+    $('#clear-map').click(clearMap);
+
+    $('form').submit(function () {
+        clearMap();
+        var config = { stream_type: "probestatus" };
+        var prbID = $("#prbID").val();
+        var asn = $("#asn").val();
+        if (prbID) {
+            config.prb = prbID;
+        }
+
+        if (asn) {
+            config.equalsTo = {asn: asn};
+        }
+
+        streamManager.setup(config, true, that.onMessage);
+        return false;
+    });
+};
 };
