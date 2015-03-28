@@ -55,7 +55,7 @@ function createMap() {
             fillOpacity: 1,
             color: (event == "connect") ? "#2FB000" : "#CF0000"
         });
-        marker = marker.addTo(map).bindPopup(body).openPopup();  // add new marker
+        marker = marker.addTo(map).bindPopup(body);  // add new marker
         markers.push(marker);
     }
 
