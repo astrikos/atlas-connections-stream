@@ -19,7 +19,7 @@ var markers = [];
 var that = this;
 
 function createMap() {
-    map = L.map('map').setView([0, 0], 2);
+    map = L.map('map').setView([52.3, 4.9], 7);
     var popup = L.popup();
 
         // add an OpenStreetMap tile layer
