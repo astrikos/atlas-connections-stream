@@ -19,7 +19,7 @@ var markers = [];
 var that = this;
 
 function createMap() {
-    map = L.map('map').setView([52.3, 4.9], 7);
+    map = L.map('map').setView([52.3, 4.9], 2);
     var popup = L.popup();
 
         // add an OpenStreetMap tile layer
@@ -99,7 +99,7 @@ function createMap() {
 function updateLogsTable(message) {
     var connections = document.getElementById("connections-table");
     var rowCount = connections.rows.length;
-    if (rowCount >= 30) {
+    if (rowCount >= 3000) {
         connections.deleteRow(rowCount - 1);
     }
     var row = connections.insertRow(1);
